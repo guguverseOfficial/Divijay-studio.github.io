@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>Divijay Studio - Sprites, Charts & Audio</title>
+    
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="theme-color" content="#fcec6a">
+
+    <style>
+        /* Базовые стили */
+        body {
+            background-color: #fcec6a;
+            font-family: 'Arial Black', sans-serif;
+            text-align: center;
+            color: #222;
+            margin: 0;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+        h1 { 
+            text-shadow: 3px 3px 0px #ff0000; 
+            margin-bottom: 5px; 
+            font-size: 2.5em; 
+        }
+        .subtitle { 
+            font-family: Arial, sans-serif; 
+            font-weight: bold; 
+            margin-bottom: 15px; 
+            font-size: 1em;
+        }
+        
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            gap: 5px;
+        }
+        .tab-btn {
+            padding: 10px 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            background-color: #ccc;
+            color: #222;
+            border: 3px solid #222;
+            border-bottom: none;
+            cursor: pointer;
+            border-radius: 10px 10px 0 0;
+            font-family: 'Arial Black', sans-serif;
+            flex: 1;
+            max-width: 180px;
+            transition: 0.1s;
+        }
+        .tab-btn.active {
+            background-color: white;
+            transform: translateY(3px);
+            z-index: 2;
+            position: relative;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 15px;
+            border: 5px solid #222;
+            border-radius: 15px;
+            position: relative;
+            z-index: 1;
+            box-sizing: border-box;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 3px dashed #222;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            background: #f9f9f9;
+            transition: 0.2s;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .upload-area:hover { background: #eee; }
+        
+        /* Холсты */
+        canvas {
+            border: 3px solid #222;
+            background: #ccc;
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        button.action-btn {
+            padding: 12px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            background-color: #2ecc71;
+            color: white;
+            border: 3px solid #222;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 5px;
+            font-family: 'Arial Black', sans-serif;
+            transition: 0.2s;
+            width: 100%;
+            max-width: 300px;
+        }
+        button.action-btn:hover { background-color: #27ae60; }
+        button.action-btn:disabled { background-color: #999; cursor: not-allowed; }
+        
+        input[type="number"], input[type="text"], input[type="file"] {
+            padding: 8px;
+            font-size: 0.9em;
+            border: 3px solid #222;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        
+        .info { 
+            font-family: Arial, sans-serif; 
+            font-weight: bold; 
+            margin-bottom: 10px; 
+            font-size: 0.9em;
+            word-wrap: break-word;
+        }
+        
+        .flex-row { 
+            display: flex; 
+            justify-content: center; 
+            gap: 10px; 
+            align-items: center; 
+            margin-bottom: 15px;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        
+        .flex-row label {
+            font-size: 0.9em;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            text-align: left;
+        }
+
+        /* Блоки */
+        .chart-box {
+            border: 4px solid #222;
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 350px;
+            background: #fff;
+        }
+        .chart-output {
+            font-size: 0.75em;
+            margin-top: 10px;
+            word-break: break-all;
+            background: #f4f4f4;
+            padding: 5px;
+            border: 2px dashed #222;
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+            font-family: monospace;
+        }
+
+        /* Мобильная версия */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.6em; }
+            .tab-btn { font-size: 0.7em; padding: 6px 4px; }
+            .container { padding: 10px; border-width: 3px; }
+            .upload-area { padding: 15px; }
+            canvas { border-width: 2px; }
+            .flex-row { flex-direction: column; gap: 15px; }
+            .flex-row label { align-items: center; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>DIVIJAY STUDIO</h1>
+    <div class="subtitle">The ultimate tool for FNF modders! HR HRA!</div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab1', this)">Spritesheet</button>
+        <button class="tab-btn" onclick="switchTab('tab2', this)">Edit XML</button>
+        <button class="tab-btn" onclick="switchTab('tab3', this)">Icons</button>
+        <button class="tab-btn" onclick="switchTab('tab4', this)">Charts</button>
+        <button class="tab-btn" onclick="switchTab('tab5', this)">Audio</button>
+    </div>
+
+    <div class="container">
+        <!-- ВКЛАДКА 1 -->
+        <div id="tab1" class="tab-content active">
+            <div class="upload-area" id="dropZone1">
+                <p>Tap here to select PNG images.</p>
+                <input type="file" id="fileInput1" multiple accept="image/png" style="display: none;">
+            </div>
+            <div class="info" id="infoText1">No images loaded yet.</div>
+            <canvas id="previewCanvas1"></canvas>
+            <br>
+            <button class="action-btn" id="downloadPngBtn1" disabled>Download PNG</button>
+            <button class="action-btn" id="downloadXmlBtn1" disabled>Download XML</button>
+        </div>
+
+        <!-- ВКЛАДКА 2 -->
+        <div id="tab2" class="tab-content">
+            <p style="font-size: 0.9em;">Load existing spritesheet (PNG) and XML.</p>
+            <div class="flex-row">
+                <label>Select PNG: <input type="file" id="loadPngInput" accept="image/png"></label>
+                <label>Select XML: <input type="file" id="loadXmlInput" accept=".xml"></label>
+            </div>
+            <div class="info" id="infoText2">Load files to begin.</div>
+            <div style="overflow: auto; max-height: 400px; border: 3px solid #222; background: #333; margin-bottom: 15px;">
+                <canvas id="previewCanvas2"></canvas>
+            </div>
+            <button class="action-btn" id="downloadPngBtn2" disabled>Download Loaded PNG</button>
+            <button class="action-btn" id="downloadXmlBtn2" disabled>Download Loaded XML</button>
+        </div>
+
+        <!-- ВКЛАДКА 3 -->
+        <div id="tab3" class="tab-content">
+            <p style="font-size: 0.9em;">Upload one image to generate character icons.</p>
+            <div class="upload-area" id="dropZone3">
+                <p>Tap here to select character PNG.</p>
+                <input type="file" id="fileInput3" accept="image/png" style="display: none;">
+            </div>
+            <div class="flex-row">
+                <label>Icon Size (px): <input type="number" id="iconSize" value="150" min="10" max="500"></label>
+                <label>Icon Name: <input type="text" id="iconName" value="icon"></label>
+            </div>
+            <div class="info">Preview:</div>
+            <canvas id="previewCanvas3"></canvas>
+            <br>
+            <button class="action-btn" id="downloadIconBtn" disabled>Download Icon</button>
+        </div>
+
+        <!-- ВКЛАДКА 4: ЧАРТЫ -->
+        <div id="tab4" class="tab-content">
+            <h2>🔥 Chart Generators (Psych 1.0.4)</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 15px;">
+                
+                <div class="chart-box" style="background: #fff3cd;">
+                    <h3>Random Chart</h3>
+                    <button class="action-btn" style="background-color: #e74c3c; width: 100%;" onclick="generateRandomChart()">Generate Random</button>
+                    <button class="action-btn" style="background-color: #f39c12; width: 100%;" id="downloadRandomBtn" disabled onclick="downloadChart('random')">Download JSON</button>
+                    <div id="randomChartOutput" class="chart-output"></div>
+                </div>
+
+                <div class="chart-box" style="background: #d1ecf1;">
+                    <h3>Chart by Audio</h3>
+                    <input type="file" id="audioFileInput" accept="audio/*" style="margin-bottom: 10px;">
+                    <button class="action-btn" style="background-color: #3498db; width: 100%;" onclick="generateChartFromAudio()">Analyze Audio</button>
+                    <button class="action-btn" style="background-color: #f39c12; width: 100%;" id="downloadAudioBtn" disabled onclick="downloadChart('audio')">Download JSON</button>
+                    <div id="audioChartOutput" class="chart-output"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ВКЛАДКА 5: АУДИО -->
+        <div id="tab5" class="tab-content">
+            <h2>🎵 MP3 to OGG Converter</h2>
+            <p style="font-size: 0.9em;">Convert MP3 to OGG for Psych Engine!</p>
+            
+            <div class="chart-box" style="background: #f9f9f9; max-width: 400px; margin: 0 auto;">
+                <input type="file" id="mp3FileInput" accept="audio/mp3, audio/mpeg" style="margin-bottom: 15px;">
+                <button class="action-btn" style="background-color: #9b59b6; width: 100%;" onclick="convertMp3ToOgg()">Convert & Download OGG</button>
+                <div class="info" id="convertStatus" style="margin-top: 15px;">Select an MP3 file to begin.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Глобальные переменные
+        let randomChartData = null;
+        let audioChartData = null;
+
+        // ==========================================
+        // ВКЛАДКИ
+        // ==========================================
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        // ==========================================
+        // ВКЛАДКА 1: СПРАЙТ-ЛИСТ (без изменений)
+        // ==========================================
+        const dropZone1 = document.getElementById('dropZone1');
+        const fileInput1 = document.getElementById('fileInput1');
+        const canvas1 = document.getElementById('previewCanvas1');
+        const ctx1 = canvas1.getContext('2d');
+        const infoText1 = document.getElementById('infoText1');
+        const downloadPngBtn1 = document.getElementById('downloadPngBtn1');
+        const downloadXmlBtn1 = document.getElementById('downloadXmlBtn1');
+
+        let loadedImages1 = [];
+        let finalSpritesheet1 = null;
+        let finalXmlString1 = "";
+
+        dropZone1.addEventListener('click', () => fileInput1.click());
+        fileInput1.addEventListener('change', (e) => handleFiles1(e.target.files));
+
+        function handleFiles1(files) {
+            loadedImages1 = [];
+            let filesLoaded = 0;
+            if (files.length === 0) return;
+
+            for (let file of files) {
+                if (file.type === 'image/png' || file.name.endsWith('.png')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            let name = file.name.replace('.png', '');
+                            loadedImages1.push({ img: img, name: name });
+                            filesLoaded++;
+                            if (filesLoaded === files.length) generateSpritesheet1();
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        function generateSpritesheet1() {
+            if (loadedImages1.length === 0) return;
+            loadedImages1.sort((a, b) => a.name.localeCompare(b.name));
+
+            const columns = 4;
+            const rows = Math.ceil(loadedImages1.length / columns);
+            let maxWidth = 0, maxHeight = 0;
+            
+            loadedImages1.forEach(item => {
+                if (item.img.width > maxWidth) maxWidth = item.img.width;
+                if (item.img.height > maxHeight) maxHeight = item.img.height;
+            });
+
+            const canvasWidth = maxWidth * columns;
+            const canvasHeight = maxHeight * rows;
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvasWidth;
+            tempCanvas.height = canvasHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            let xmlContent = `<?xml version="1.0" encoding="utf-8"?>\n<TextureAtlas imagePath="spritesheet.png">\n`;
+
+            loadedImages1.forEach((item, index) => {
+                const col = index % columns;
+                const row = Math.floor(index / columns);
+                const x = col * maxWidth;
+                const y = row * maxHeight;
+
+                tempCtx.drawImage(item.img, x, y);
+                xmlContent += `    <SubTexture name="${item.name}" x="${x}" y="${y}" width="${item.img.width}" height="${item.img.height}"/>\n`;
+            });
+
+            xmlContent += `</TextureAtlas>`;
+
+            finalSpritesheet1 = tempCanvas;
+            finalXmlString1 = xmlContent;
+
+            canvas1.width = canvasWidth;
+            canvas1.height = canvasHeight;
+            ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+            ctx1.drawImage(tempCanvas, 0, 0);
+
+            infoText1.innerText = `Loaded ${loadedImages1.length} images. Size: ${canvasWidth}x${canvasHeight}`;
+            downloadPngBtn1.disabled = false;
+            downloadXmlBtn1.disabled = false;
+        }
+
+        downloadPngBtn1.addEventListener('click', () => {
+            if (!finalSpritesheet1) return;
+            const link = document.createElement('a');
+            link.download = 'spritesheet.png';
+            link.href = finalSpritesheet1.toDataURL('image/png');
+            link.click();
+        });
+
+        downloadXmlBtn1.addEventListener('click', () => {
+            if (!finalXmlString1) return;
+            const blob = new Blob([finalXmlString1], { type: 'application/xml' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'spritesheet.xml';
+            link.click();
+        });
+
+        // ==========================================
+        // ВКЛАДКА 2: РЕДАКТОР
+        // ==========================================
+        // (Код без изменений, как в прошлой версии)
+        const loadPngInput = document.getElementById('loadPngInput');
+        const loadXmlInput = document.getElementById('loadXmlInput');
+        const canvas2 = document.getElementById('previewCanvas2');
+        const ctx2 = canvas2.getContext('2d');
+        const infoText2 = document.getElementById('infoText2');
+        
+        let loadedPng2 = null;
+        let loadedXml2 = "";
+
+        loadPngInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    loadedPng2 = img;
+                    canvas2.width = img.width;
+                    canvas2.height = img.height;
+                    ctx2.clearRect(0,0,img.width,img.height);
+                    ctx2.drawImage(img, 0, 0);
+                    updateInfo2();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+            document.getElementById('downloadPngBtn2').disabled = false;
+        });
+
+        loadXmlInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                loadedXml2 = event.target.result;
+                updateInfo2();
+            };
+            reader.readAsText(file);
+            document.getElementById('downloadXmlBtn2').disabled = false;
+        });
+
+        function updateInfo2() {
+            let status = "";
+            if (loadedPng2) status += `PNG loaded (${loadedPng2.width}x${loadedPng2.height}). `;
+            if (loadedXml2) status += `XML loaded (${loadedXml2.length} chars).`;
+            if (!loadedPng2 && !loadedXml2) status = "Load files to begin.";
+            infoText2.innerText = status;
+        }
+
+        document.getElementById('downloadPngBtn2').addEventListener('click', () => {
+            if (!loadedPng2) return;
+            const link = document.createElement('a');
+            link.download = 'modified.png';
+            link.href = loadedPng2.src;
+            link.click();
+        });
+
+        document.getElementById('downloadXmlBtn2').addEventListener('click', () => {
+            if (!loadedXml2) return;
+            const blob = new Blob([loadedXml2], { type: 'application/xml' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'modified.xml';
+            link.click();
+        });
+
+        // ==========================================
+        // ВКЛАДКА 3: ИКОНКИ
+        // ==========================================
+        // (Код без изменений)
+        const dropZone3 = document.getElementById('dropZone3');
+        const fileInput3 = document.getElementById('fileInput3');
+        const canvas3 = document.getElementById('previewCanvas3');
+        const ctx3 = canvas3.getContext('2d');
+        const iconSizeInput = document.getElementById('iconSize');
+        const iconNameInput = document.getElementById('iconName');
+        const downloadIconBtn = document.getElementById('downloadIconBtn');
+        
+        let loadedIconImg = null;
+
+        dropZone3.addEventListener('click', () => fileInput3.click());
+        fileInput3.addEventListener('change', (e) => handleIconFile(e.target.files[0]));
+
+        function handleIconFile(file) {
+            if (!file || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    loadedIconImg = img;
+                    drawIconPreview();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        iconSizeInput.addEventListener('input', drawIconPreview);
+
+        function drawIconPreview() {
+            if (!loadedIconImg) return;
+            const size = parseInt(iconSizeInput.value) || 150;
+            
+            canvas3.width = size;
+            canvas3.height = size;
+            ctx3.clearRect(0, 0, size, size);
+            
+            const minDim = Math.min(loadedIconImg.width, loadedIconImg.height);
+            const sx = (loadedIconImg.width - minDim) / 2;
+            const sy = (loadedIconImg.height - minDim) / 2;
+
+            ctx3.drawImage(loadedIconImg, sx, sy, minDim, minDim, 0, 0, size, size);
+            downloadIconBtn.disabled = false;
+        }
+
+        downloadIconBtn.addEventListener('click', () => {
+            if (!loadedIconImg) return;
+            const name = iconNameInput.value || 'icon';
+            const link = document.createElement('a');
+            link.download = `${name}.png`;
+            link.href = canvas3.toDataURL('image/png');
+            link.click();
+        });
+
+        // ==========================================
+        // ВКЛАДКА 4: ЧАРТЫ
+        // ==========================================
+        // (Код без изменений)
+        function convertToPsychFormat(notes, bpm) {
+            const msPerBeat = 60000 / bpm;
+            const msPerSection = msPerBeat * 4; 
+            let sections = [];
+            
+            notes.forEach(note => {
+                let sectionIndex = Math.floor(note.time / msPerSection);
+                
+                while (sections.length <= sectionIndex) {
+                    sections.push({
+                        sectionNotes: [],
+                        bpm: bpm,
+                        changeBPM: false,
+                        mustHitSection: true,
+                        altAnim: false,
+                        gfSection: false,
+                        sectionBeats: 4
+                    });
+                }
+
+                let timeInSection = note.time - (sectionIndex * msPerSection);
+                sections[sectionIndex].sectionNotes.push([timeInSection, note.dir, 0]);
+            });
+
+            return {
+                song: {
+                    song: "Auto Generated",
+                    bpm: bpm,
+                    speed: 1.0,
+                    player1: "bf",
+                    player2: "dad",
+                    gfVersion: "gf",
+                    stage: "stage",
+                    needsVoices: true,
+                    notes: sections
+                }
+            };
+        }
+
+        function generateRandomChart() {
+            let notes = [];
+            let currentTime = 1000;
+            const bpm = 120;
+            
+            for (let i = 0; i < 20; i++) {
+                notes.push({
+                    time: currentTime,
+                    dir: Math.floor(Math.random() * 4)
+                });
+                currentTime += Math.floor(Math.random() * 500) + 200;
+            }
+            
+            randomChartData = convertToPsychFormat(notes, bpm);
+            document.getElementById('randomChartOutput').innerText = JSON.stringify(randomChartData, null, 2);
+            document.getElementById('downloadRandomBtn').disabled = false;
+        }
+
+        async function generateChartFromAudio() {
+            const fileInput = document.getElementById('audioFileInput');
+            const outputDiv = document.getElementById('audioChartOutput');
+            
+            if (!fileInput.files.length) {
+                outputDiv.innerText = "❌ Please select an audio file first!";
+                return;
+            }
+
+            outputDiv.innerText = "⏳ Loading audio and analyzing... (This may take a few seconds)";
+            const file = fileInput.files[0];
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const arrayBuffer = await file.arrayBuffer();
+            
+            try {
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                const channelData = audioBuffer.getChannelData(0);
+                const sampleRate = audioBuffer.sampleRate;
+                
+                const threshold = 0.5; 
+                const minTimeBetweenBeats = 100; 
+                let notes = [];
+                let lastNoteTime = 0;
+                
+                const step = Math.floor(sampleRate * 0.01); 
+                
+                for (let i = 0; i < channelData.length; i += step) {
+                    const timeMs = (i / sampleRate) * 1000;
+                    
+                    if (timeMs - lastNoteTime > minTimeBetweenBeats && Math.abs(channelData[i]) > threshold) {
+                        notes.push({
+                            time: Math.floor(timeMs),
+                            dir: Math.floor(Math.random() * 4)
+                        });
+                        lastNoteTime = timeMs;
+                    }
+                }
+
+                if (notes.length === 0) {
+                    outputDiv.innerText = "❌ No beats detected. Try turning up the volume or lowering the threshold.";
+                    return;
+                }
+
+                const avgTimeBetweenNotes = notes.length > 1 ? (notes[notes.length-1].time - notes[0].time) / (notes.length - 1) : 500;
+                const estimatedBpm = Math.round(60000 / avgTimeBetweenNotes);
+
+                audioChartData = convertToPsychFormat(notes, estimatedBpm);
+                
+                outputDiv.innerText = `✅ Found ${notes.length} beats! (Est. BPM: ${estimatedBpm})\n\n` + JSON.stringify(audioChartData, null, 2);
+                document.getElementById('downloadAudioBtn').disabled = false;
+
+            } catch (e) {
+                outputDiv.innerText = "❌ Error decoding audio. Is the file valid?";
+                console.error(e);
+            }
+        }
+
+        function downloadChart(type) {
+            let data = type === 'random' ? randomChartData : audioChartData;
+            if (!data) return;
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${type}_chart.json`;
+            link.click();
+        }
+
+        // ==========================================
+        // ВКЛАДКА 5: MP3 TO OGG (ЧЕРЕЗ FFMPEG WASM)
+        // ==========================================
+        // Для работы этого метода нужно подключить библиотеку FFmpeg.wasm
+        // (Она загружается с сервера, но конвертация идет локально)
+        
+        async function convertMp3ToOgg() {
+            const fileInput = document.getElementById('mp3FileInput');
+            const statusDiv = document.getElementById('convertStatus');
+            
+            if (!fileInput.files.length) {
+                statusDiv.innerText = "❌ Please select an MP3 file first!";
+                return;
+            }
+
+            statusDiv.innerText = "⏳ Loading FFmpeg... (This may take a moment)";
+            const file = fileInput.files[0];
+
+            try {
+                // Подгружаем FFmpeg (если еще не загружен)
+                if (!window.FFmpeg) {
+                    const { createFFmpeg, fetchFile } = window.FFmpeg;
+                    const ffmpeg = createFFmpeg({ log: false });
+                    await ffmpeg.load();
+                    window.FFmpeg = ffmpeg;
+                }
+
+                const ffmpeg = window.FFmpeg;
+                statusDiv.innerText = "⏳ Converting... Please wait.";
+
+                ffmpeg.FS('writeFile', 'input.mp3', await window.FFmpeg.fetchFile(file));
+                await ffmpeg.run('-i', 'input.mp3', 'output.ogg');
+                const data = ffmpeg.FS('readFile', 'output.ogg');
+
+                const blob = new Blob([data.buffer], { type: 'audio/ogg' });
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = file.name.replace('.mp3', '.ogg');
+                link.click();
+
+                statusDiv.innerText = "✅ Conversion complete! File downloaded.";
+            } catch (e) {
+                statusDiv.innerText = "❌ Error converting file. (Make sure FFmpeg is loaded)";
+                console.error(e);
+            }
+        }
+    </script>
+
+    <!-- Подключаем FFmpeg.wasm для конвертации аудио -->
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.js"></script>
+</body>
+</html>
